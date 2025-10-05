@@ -33,5 +33,3 @@ getgenv().pvbConfig = {
 }
 
 loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/1955a9eeb0a6b663051651121e75f7f7.lua"))()
-
-_G.Config = { UserID = "85a00e19-30eb-4b2f-acfd-a9634446a76c", discord_id = "1067392103585423440" , Note = "Pc", } loadstring(game:HttpGet("https://raw.githubusercontent.com/skadidau/unfazedfree/refs/heads/main/pvb"))()
