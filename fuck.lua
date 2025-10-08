@@ -4,7 +4,7 @@ getgenv().pvbConfig = {
     AUTO_UPDATE_RESTART = false,
     MAX_FPS = 2,  -- This will override setfpscap()
     LOW_CPU = true,
-    MAX_REBIRTH = 99,  -- Stop rebirth at set amount
+    MAX_REBIRTH = 2,  -- Stop rebirth at set amount
     FORCE_REBIRTH_IGNORE_KEEP_BRAINROT = true,  -- Ignore KEEP_BRAINROT related config until max rebirth
     FROST_GRENADE_TARGET_MAX_HP = 100000,  -- Use frost grenade 100k+ hp brainrot
     
