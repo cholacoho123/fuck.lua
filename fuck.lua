@@ -9,8 +9,8 @@ local PRINT_VERBOSE = true             -- in log chi tiết
 -- ⏳ Delay riêng cho từng trứng
 local EGG_DELAYS = {
     [1] = 0.1,  -- Delay cho trứng 1
-    [2] = 60,  -- Delay cho trứng 2
-    [3] = 240,  -- Delay cho trứng 3
+    [2] = 80,  -- Delay cho trứng 2
+    [3] = 300,  -- Delay cho trứng 3
 }
 
 -- SERVICES / PATHS
