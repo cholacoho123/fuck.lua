@@ -10,10 +10,10 @@ local STOP_ON_FIRST_FOUND = true       -- dừng khi tìm thấy plot
 -- định dạng: [số_trứng] = delay (giây)
 local EGG_DELAYS = {
     [1] = 0.1,    -- trứng 1: spam liên tục
-    [2] = 80,     -- trứng 2: 80 giây
-    [3] = 200,    -- trứng 3: 300 giây
-    [4] = 400,    -- trứng 4: 600 giây
-    [5] = 8000,   -- trứng 5: 1000 giây
+    [2] = 60,     -- trứng 2: 80 giây
+    [3] = 150,    -- trứng 3: 300 giây
+    [4] = 300,    -- trứng 4: 600 giây
+    [5] = 700,   -- trứng 5: 1000 giây
 }
 
 -- SERVICES / PATHS
