@@ -1,35 +1,102 @@
-script_key="CnkuObJwgnkKiglxzVEsyiafKNFOtMtN";
+script_key="XJmMuFYqsptqfFIXGPGSWYLdXxwqDHFn";
+loadstring(game:HttpGet('https://zaphub.xyz/Exec'))()
+-- CONFIG
+local DELAY_BETWEEN_SCAN_CALLS = 0.1   -- giây giữa mỗi call khi quét các plot
+local DELAY_BETWEEN_PURCHASES = 0.1    -- giây giữa mỗi lần spam mua trên plot tìm được
+local STOP_ON_FIRST_FOUND = true       -- dừng quét ngay khi tìm plot khả dụng
+local PRINT_VERBOSE = true             -- in log chi tiết
 
-getgenv().pvbConfig = {
-    AUTO_UPDATE_RESTART = false,
-    MAX_FPS = 2,  -- This will override setfpscap()
-    LOW_CPU = true,
-    MAX_REBIRTH = 2,  -- Stop rebirth at set amount
-    FORCE_REBIRTH_IGNORE_KEEP_BRAINROT = true,  -- Ignore KEEP_BRAINROT related config until max rebirth
-    FROST_GRENADE_TARGET_MAX_HP = 100000,  -- Use frost grenade 100k+ hp brainrot
-    
-    OPEN_LUCKY_EGG = {"Godly Lucky Egg", "Secret Lucky Egg", "Meme Lucky Egg"},
-    FUSE_PLANT = {"Mr Carrot", "Pumpkin", "Sunflower", "Dragon Fruit", "Eggplant", "Watermelon"},  -- Auto keep & fuse required plant + brainrot
+-- SERVICES / PATHS
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local PlotsFolder = workspace:WaitForChild("__THINGS"):WaitForChild("Plots")
+local Plots_Invoke = ReplicatedStorage:WaitForChild("Network"):WaitForChild("Plots_Invoke")
 
-    BUY_SEED_SHOP = {["Cactus"] = 5, ["Strawberry"] = 5, ["Pumpkin"] = 5, ["Sunflower"] = 5, ["Dragon Fruit"] = 5, ["Eggplant"] = 5, ["Watermelon"] = 5, "Cocotank", "Carnivorous Plant", "Mr Carrot", "Tomatrio", "Shroombino", "Mango"},
-    BUY_GEAR_SHOP = {"Frost Grenade", "Frost Blower"},
-    KEEP_SEED = {},
-    KEEP_PLANT_RARITY = {"Secret", "Limited"},
-    KEEP_BRAINROT_MONEY_PER_SECOND = 20000,  -- Number
-    KEEP_BRAINROT_RARITY = { "Secret", "Limited" },
+local LocalPlayer = Players.LocalPlayer
 
-    SELL_BRAINROT_DELAY = 30,
-    SELL_PLANT_DELAY = 30,
+-- helper: kiểm tra phản hồi server có hợp lệ hay không
+local function isValidResponse(res, ok)
+    if not ok then
+        return false
+    end
+    if res == nil or res == false then
+        return false
+    end
+    return true
+end
 
-    -- Webhook
-    BRAINROT_WEBHOOK_URL = "https://discord.com/api/webhooks/1281359782900535377/tttxxQpzTZcaV58yU3Af7CXQOu96gEznKsg3ei_vaxmi_jQ_aDjCcFiNpr8HUNVxu24j",
-    DISCORD_ID = "",
-    NOTIFY_RARITY = { "Secret", "Limited" },
-    NOTIFY_MONEY_PER_SECOND = 20000,
-    WEBHOOK_NOTE = "cuto",
-    SHOW_PUBLIC_DISCORD_ID = true,
-    SHOW_WEBHOOK_USERNAME = true,
-    SHOW_WEBHOOK_JOBID = true,
-}
+-- scan tất cả plot hiện có trong workspace.__THINGS.Plots
+local function scanPlotsAndFindMine()
+    if PRINT_VERBOSE then print("🔍 Bắt đầu quét các plot trong workspace.__THINGS.Plots ...") end
 
-loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/1955a9eeb0a6b663051651121e75f7f7.lua"))()
+    for _, plot in ipairs(PlotsFolder:GetChildren()) do
+        local plotId = plot:GetAttribute("ID") or plot:GetAttribute("PlotID") or tonumber(plot.Name) or plot.Name
+        local idNum = tonumber(plotId) or plotId
+
+        if PRINT_VERBOSE then print(("  - Thử plot %s"):format(tostring(idNum))) end
+
+        local args = {
+            idNum,
+            "PurchaseEgg",
+            1,
+            3
+        }
+
+        local ok, res = pcall(function()
+            return Plots_Invoke:InvokeServer(unpack(args))
+        end)
+
+        if isValidResponse(res, ok) then
+            print(("✅ Plot khả dụng phát hiện: %s  | Resp: %s"):format(tostring(idNum), tostring(res)))
+            return idNum
+        else
+            if PRINT_VERBOSE then
+                print(("   ✖ Không phải plot của bạn: %s  | ok=%s res=%s"):format(tostring(idNum), tostring(ok), tostring(res)))
+            end
+        end
+
+        task.wait(DELAY_BETWEEN_SCAN_CALLS)
+    end
+
+    print("🔎 Quét xong, không tìm được plot khả dụng.")
+    return nil
+end
+
+-- spam mua liên tục cho plotId đã tìm được
+local function spamPurchase(plotId)
+    if not plotId then return end
+    print(("🚀 Bắt đầu spam mua trứng 1–3 cho plot %s (delay %ss) — dừng bằng cách thoát script"):format(
+        tostring(plotId), tostring(DELAY_BETWEEN_PURCHASES)
+    ))
+
+    while true do
+        -- 🥚 Lặp qua từng trứng: House1 (1), House2 (2), House3 (3)
+        for eggSlot = 1, 3 do
+            local args = { plotId, "PurchaseEgg", eggSlot, 3 }
+
+            local ok, res = pcall(function()
+                return Plots_Invoke:InvokeServer(unpack(args))
+            end)
+
+            if ok then
+                print(("✅ Mua thành công trứng #%d (resp=%s) tại plot %s"):format(eggSlot, tostring(res), tostring(plotId)))
+            else
+                warn(("⚠️ Lỗi khi mua trứng #%d tại plot %s -> %s"):format(eggSlot, tostring(plotId), tostring(res)))
+            end
+
+            task.wait(DELAY_BETWEEN_PURCHASES)
+        end
+    end
+end
+
+
+-- MAIN
+task.spawn(function()
+    local foundPlot = scanPlotsAndFindMine()
+    if not foundPlot then
+        print("❗ Không tìm thấy plot khả dụng. Bạn có thể thử tăng delay hoặc kiểm tra logic phản hồi.")
+        return
+    end
+
+    spamPurchase(foundPlot)
+end)
