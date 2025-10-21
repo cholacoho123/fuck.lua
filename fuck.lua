@@ -1,4 +1,4 @@
-script_key="XJmMuFYqsptqfFIXGPGSWYLdXxwqDHFn";
+script_key="TdVwhWpohFRGWfEVbDSwgRifLiopOLOG";
 loadstring(game:HttpGet('https://zaphub.xyz/Exec'))()
 -- CONFIG
 local DELAY_BETWEEN_SCAN_CALLS = 0.1   -- giây giữa mỗi call khi quét các plot
