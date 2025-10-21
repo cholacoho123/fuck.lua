@@ -1,16 +1,19 @@
 script_key="TdVwhWpohFRGWfEVbDSwgRifLiopOLOG";
 loadstring(game:HttpGet('https://zaphub.xyz/Exec'))()
+wait(5)
 -- CONFIG
 local DELAY_BETWEEN_SCAN_CALLS = 0.1   -- giây giữa mỗi call khi quét các plot
-local SCAN_INTERVAL = 10               -- giây giữa mỗi lần quét lại
-local STOP_ON_FIRST_FOUND = true       -- dừng quét ngay khi tìm plot khả dụng
 local PRINT_VERBOSE = true             -- in log chi tiết
+local STOP_ON_FIRST_FOUND = true       -- dừng khi tìm thấy plot
 
--- ⏳ Delay riêng cho từng trứng
+-- 🥚 CẤU HÌNH DELAY RIÊNG CHO TỪNG TRỨNG
+-- định dạng: [số_trứng] = delay (giây)
 local EGG_DELAYS = {
-    [1] = 0.1,  -- Delay cho trứng 1
-    [2] = 80,  -- Delay cho trứng 2
-    [3] = 300,  -- Delay cho trứng 3
+    [1] = 0.1,    -- trứng 1: spam liên tục
+    [2] = 80,     -- trứng 2: 80 giây
+    [3] = 300,    -- trứng 3: 300 giây
+    [4] = 600,    -- trứng 4: 600 giây
+    [5] = 1000,   -- trứng 5: 1000 giây
 }
 
 -- SERVICES / PATHS
@@ -18,18 +21,11 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PlotsFolder = workspace:WaitForChild("__THINGS"):WaitForChild("Plots")
 local Plots_Invoke = ReplicatedStorage:WaitForChild("Network"):WaitForChild("Plots_Invoke")
-
 local LocalPlayer = Players.LocalPlayer
 
 -- helper: kiểm tra phản hồi server có hợp lệ hay không
 local function isValidResponse(res, ok)
-    if not ok then
-        return false
-    end
-    if res == nil or res == false then
-        return false
-    end
-    return true
+    return ok and res ~= nil and res ~= false
 end
 
 -- scan tất cả plot hiện có trong workspace.__THINGS.Plots
@@ -42,12 +38,7 @@ local function scanPlotsAndFindMine()
 
         if PRINT_VERBOSE then print(("  - Thử plot %s"):format(tostring(idNum))) end
 
-        local args = {
-            idNum,
-            "PurchaseEgg",
-            1,
-            3
-        }
+        local args = { idNum, "PurchaseEgg", 1, 3 }
 
         local ok, res = pcall(function()
             return Plots_Invoke:InvokeServer(unpack(args))
@@ -69,14 +60,12 @@ local function scanPlotsAndFindMine()
     return nil
 end
 
--- spam mua liên tục cho plotId đã tìm được
-local function spamPurchase(plotId)
-    if not plotId then return end
-    print(("🚀 Bắt đầu spam mua trứng 1–3 cho plot %s — dừng bằng cách thoát script"):format(tostring(plotId)))
+-- spam riêng cho từng trứng
+local function startEggThread(plotId, eggSlot, delay)
+    task.spawn(function()
+        print(("🐣 Bắt đầu spam trứng #%d mỗi %s giây tại plot %s"):format(eggSlot, tostring(delay), tostring(plotId)))
 
-    while true do
-        -- 🥚 Lặp qua từng trứng với delay riêng biệt
-        for eggSlot = 1, 3 do
+        while true do
             local args = { plotId, "PurchaseEgg", eggSlot, 3 }
 
             local ok, res = pcall(function()
@@ -84,29 +73,30 @@ local function spamPurchase(plotId)
             end)
 
             if ok then
-                print(("✅ Mua thành công trứng #%d (resp=%s) tại plot %s"):format(eggSlot, tostring(res), tostring(plotId)))
+                print(("✅ Mua thành công trứng #%d (resp=%s)"):format(eggSlot, tostring(res)))
             else
-                warn(("⚠️ Lỗi khi mua trứng #%d tại plot %s -> %s"):format(eggSlot, tostring(plotId), tostring(res)))
+                warn(("⚠️ Lỗi khi mua trứng #%d -> %s"):format(eggSlot, tostring(res)))
             end
 
-            -- 🕒 delay riêng cho từng trứng
-            task.wait(EGG_DELAYS[eggSlot] or 0.2)
+            task.wait(delay)
         end
-    end
+    end)
 end
 
--- MAIN LOOP: quét lại mỗi SCAN_INTERVAL giây cho đến khi tìm thấy plot
+-- MAIN
 task.spawn(function()
-    while true do
-        local foundPlot = scanPlotsAndFindMine()
-        if foundPlot then
-            print("✅ Đã tìm thấy plot của bạn, bắt đầu spam mua trứng...")
-            spamPurchase(foundPlot)
-            break -- ngừng vòng lặp chính sau khi tìm thấy
-        else
-            print(("⏳ Không tìm thấy plot khả dụng, thử lại sau %s giây..."):format(SCAN_INTERVAL))
-            task.wait(SCAN_INTERVAL)
-        end
+    local foundPlot = scanPlotsAndFindMine()
+    if not foundPlot then
+        print("❗ Không tìm thấy plot khả dụng. Hãy kiểm tra lại hoặc tăng delay.")
+        return
+    end
+
+    print(("🚀 Bắt đầu chạy spam theo từng trứng cho plot %s"):format(tostring(foundPlot)))
+
+    -- chạy song song cho từng trứng
+    for eggSlot, delay in pairs(EGG_DELAYS) do
+        startEggThread(foundPlot, eggSlot, delay)
+        task.wait(0.2) -- tránh overload khi khởi tạo
     end
 end)
 
