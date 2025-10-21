@@ -5,6 +5,7 @@ local DELAY_BETWEEN_SCAN_CALLS = 0.1   -- giây giữa mỗi call khi quét các
 local DELAY_BETWEEN_PURCHASES = 0.1    -- giây giữa mỗi lần spam mua trên plot tìm được
 local STOP_ON_FIRST_FOUND = true       -- dừng quét ngay khi tìm plot khả dụng
 local PRINT_VERBOSE = true             -- in log chi tiết
+local SCAN_INTERVAL = 10               -- ⏳ thời gian (giây) giữa mỗi lần quét lại
 
 -- SERVICES / PATHS
 local Players = game:GetService("Players")
@@ -89,14 +90,18 @@ local function spamPurchase(plotId)
     end
 end
 
-
--- MAIN
+-- MAIN LOOP: quét lại mỗi 10 giây cho đến khi tìm thấy plot
 task.spawn(function()
-    local foundPlot = scanPlotsAndFindMine()
-    if not foundPlot then
-        print("❗ Không tìm thấy plot khả dụng. Bạn có thể thử tăng delay hoặc kiểm tra logic phản hồi.")
-        return
+    while true do
+        local foundPlot = scanPlotsAndFindMine()
+        if foundPlot then
+            print("✅ Đã tìm thấy plot của bạn, bắt đầu spam mua trứng...")
+            spamPurchase(foundPlot)
+            break -- ngừng vòng lặp chính sau khi tìm thấy
+        else
+            print(("⏳ Không tìm thấy plot khả dụng, thử lại sau %s giây..."):format(SCAN_INTERVAL))
+            task.wait(SCAN_INTERVAL)
+        end
     end
-
-    spamPurchase(foundPlot)
 end)
+
