@@ -2,10 +2,16 @@ script_key="TdVwhWpohFRGWfEVbDSwgRifLiopOLOG";
 loadstring(game:HttpGet('https://zaphub.xyz/Exec'))()
 -- CONFIG
 local DELAY_BETWEEN_SCAN_CALLS = 0.1   -- giây giữa mỗi call khi quét các plot
-local DELAY_BETWEEN_PURCHASES = 0.1    -- giây giữa mỗi lần spam mua trên plot tìm được
+local SCAN_INTERVAL = 10               -- giây giữa mỗi lần quét lại
 local STOP_ON_FIRST_FOUND = true       -- dừng quét ngay khi tìm plot khả dụng
 local PRINT_VERBOSE = true             -- in log chi tiết
-local SCAN_INTERVAL = 10               -- ⏳ thời gian (giây) giữa mỗi lần quét lại
+
+-- ⏳ Delay riêng cho từng trứng
+local EGG_DELAYS = {
+    [1] = 0.1,  -- Delay cho trứng 1
+    [2] = 60,  -- Delay cho trứng 2
+    [3] = 240,  -- Delay cho trứng 3
+}
 
 -- SERVICES / PATHS
 local Players = game:GetService("Players")
@@ -66,12 +72,10 @@ end
 -- spam mua liên tục cho plotId đã tìm được
 local function spamPurchase(plotId)
     if not plotId then return end
-    print(("🚀 Bắt đầu spam mua trứng 1–3 cho plot %s (delay %ss) — dừng bằng cách thoát script"):format(
-        tostring(plotId), tostring(DELAY_BETWEEN_PURCHASES)
-    ))
+    print(("🚀 Bắt đầu spam mua trứng 1–3 cho plot %s — dừng bằng cách thoát script"):format(tostring(plotId)))
 
     while true do
-        -- 🥚 Lặp qua từng trứng: House1 (1), House2 (2), House3 (3)
+        -- 🥚 Lặp qua từng trứng với delay riêng biệt
         for eggSlot = 1, 3 do
             local args = { plotId, "PurchaseEgg", eggSlot, 3 }
 
@@ -85,12 +89,13 @@ local function spamPurchase(plotId)
                 warn(("⚠️ Lỗi khi mua trứng #%d tại plot %s -> %s"):format(eggSlot, tostring(plotId), tostring(res)))
             end
 
-            task.wait(DELAY_BETWEEN_PURCHASES)
+            -- 🕒 delay riêng cho từng trứng
+            task.wait(EGG_DELAYS[eggSlot] or 0.2)
         end
     end
 end
 
--- MAIN LOOP: quét lại mỗi 10 giây cho đến khi tìm thấy plot
+-- MAIN LOOP: quét lại mỗi SCAN_INTERVAL giây cho đến khi tìm thấy plot
 task.spawn(function()
     while true do
         local foundPlot = scanPlotsAndFindMine()
