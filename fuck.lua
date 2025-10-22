@@ -1,15 +1,36 @@
 -- ===============================
--- 🛡️ Anti-AFK Script (auto chạy luôn)
+-- 🛡️ Anti-AFK Script (PC & Mobile, click 2 phút/lần)
 -- ===============================
 
 local Players = game:GetService('Players')
 local VirtualUser = game:GetService('VirtualUser')
+local UserInputService = game:GetService('UserInputService')
 local player = Players.LocalPlayer
 
-player.Idled:Connect(function()
+local count = 0
+
+-- Hàm click Anti-AFK
+local function antiAFKClick()
     VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
-    warn('✅ Anti-AFK: giả lập click chuột, tránh bị kick')
+
+    if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
+        -- Mobile: giả lập touch
+        VirtualUser:TouchClick(Vector2.new())
+    else
+        -- PC: giả lập click chuột phải
+        VirtualUser:ClickButton2(Vector2.new())
+    end
+
+    count += 1
+    warn('✅ Anti-AFK triggered ' .. count .. ' lần')
+end
+
+-- Chạy định kỳ 2 phút 1 lần
+spawn(function()
+    while true do
+        antiAFKClick()
+        wait(120) -- 120 giây = 2 phút
+    end
 end)
 
 -- 🧩 AUTO HOUSE & EGG MANAGER - TỐC ĐỘ CAO
