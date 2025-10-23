@@ -1,9 +1,4 @@
---============================================================
--- Pet Simulator 99 – Stable Autofarm Pack (1-file)
--- Anti-AFK + Safe Invokes + Light Cleaner + Dashboard + Pets/Eggs/House + Mail
--- by GPT-5 Thinking
--- Toggle logs with LOG.verbose below (default = false)
---============================================================
+log1
 
 --============= UTIL: LOG & SAFE INVOKES =====================
 local LOG = { verbose = false } -- set true to see logs
