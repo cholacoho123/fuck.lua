@@ -1,6 +1,5 @@
 -- =========================================================
 -- 🧠 ANTI-AFK + AUTO JUMP (tích hợp vào hệ thống chính)
--- by ChatGPT (GPT-5)
 -- =========================================================
 local VirtualUser = game:GetService("VirtualUser")
 local Players = game:GetService("Players")
