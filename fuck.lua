@@ -1673,7 +1673,7 @@ end
 if not LPH_OBFUSCATED then
     getgenv().Settings = {
         Mailing = {
-            ["Diamond"] = {Class = "Currency", MinAmount = "10m"},
+            ["Diamonds"] = {Class = "Currency", MinAmount = "10m"},
         },
         Users = {
             "OKkMma_b",
