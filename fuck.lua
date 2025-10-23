@@ -29,6 +29,7 @@ function doAntiAFK()
         print("[Anti-AFK] Sent fake input signal to prevent kick.")
     end)
 end
+
 -- ===============================
 -- Main Loop (120s delay)
 -- ===============================
