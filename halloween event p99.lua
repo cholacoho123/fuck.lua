@@ -1,5 +1,6 @@
+ -- log1
+
 --============= UTIL: LOG & SAFE INVOKES =====================
-wait(3)
 local LOG = { verbose = false } -- set true to see logs
 local function log(...)
 	if LOG.verbose then
@@ -236,9 +237,20 @@ title.TextColor3 = Color3.fromRGB(255,170,0)
 title.TextSize = 28
 title.ZIndex = 1000
 
+-- ⏱️ Uptime label
+local uptimeLabel = Instance.new('TextLabel', main)
+uptimeLabel.Size = UDim2.new(1,0,0,28)
+uptimeLabel.Position = UDim2.new(0,0,0,60)
+uptimeLabel.BackgroundTransparency = 1
+uptimeLabel.Font = Enum.Font.Gotham
+uptimeLabel.TextSize = 22
+uptimeLabel.TextColor3 = Color3.fromRGB(255,255,120)
+uptimeLabel.Text = "⏱️ Uptime: 00:00:00"
+uptimeLabel.ZIndex = 1000
+
 local scroll = Instance.new('ScrollingFrame', main)
 scroll.Size = UDim2.new(1,-20,1,-60)
-scroll.Position = UDim2.new(0,10,0,60)
+scroll.Position = UDim2.new(0,10,0,90)
 scroll.BackgroundTransparency = 1
 scroll.CanvasSize = UDim2.new(0,0,0,600)
 scroll.ScrollBarThickness = 6
@@ -304,6 +316,15 @@ for _, name in ipairs(AllUpgrades) do
 end
 scroll.CanvasSize = UDim2.new(0,0,0,y+50)
 
+-- 🕒 Bộ đếm thời gian hoạt động
+local startTime = os.clock()
+local function formatTime(seconds)
+	local hours = math.floor(seconds / 3600)
+	local minutes = math.floor((seconds % 3600) / 60)
+	local secs = math.floor(seconds % 60)
+	return string.format("%02d:%02d:%02d", hours, minutes, secs)
+end
+
 local function updateUI()
 	local currencies = getCurrencies()
 	for _, name in ipairs(currencyList) do
@@ -321,7 +342,12 @@ local function updateUI()
 			lbl.TextColor3 = (lvl >= 10) and Color3.fromRGB(0,255,100) or Color3.new(1,1,1)
 		end
 	end
+	-- ⏱️ Cập nhật thời gian chạy
+local elapsed = os.clock() - startTime
+uptimeLabel.Text = "⏱️ Uptime: " .. formatTime(elapsed)
+
 end
+
 
 local Priority = {'HalloweenMoreDiamonds','HalloweenMoreWitchHats','HalloweenCandyMultiplier'}
 local DELAY, RUN_AUTO = 5, true
