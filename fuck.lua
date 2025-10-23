@@ -368,8 +368,8 @@ local CONFIG1 = {
 		[1]={delay=0.9,enabled=true,amount=3},
 		[2]={delay=30,enabled=true,amount=3},
 		[3]={delay=140,enabled=true,amount=2},
-		[4]={delay=400,enabled=true,amount=1},
-		[5]={delay=1200,enabled=true,amount=1},
+		[4]={delay=500,enabled=true,amount=1},
+		[5]={delay=1300,enabled=true,amount=1},
 	}
 }
 local CONFIG2 = {
