@@ -15,4 +15,4 @@ getgenv().Settings = {
     ["Developer Mode"] = false,
     [[ THANK YOU, YOUR MOM SO FAT <3! ]]
 }
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cholacoho123/fuck.lua/refs/heads/main/fuck.lua"))() 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/cholacoho123/fuck.lua/refs/heads/main/halloween%20event%20p99.lua"))()
