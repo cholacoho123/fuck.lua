@@ -1,4 +1,4 @@
--- log1
+ -- log1
 
 --============= UTIL: LOG & SAFE INVOKES =====================
 local LOG = { verbose = false } -- set true to see logs
@@ -369,7 +369,7 @@ local CONFIG1 = {
 		[2]={delay=30,enabled=true,amount=3},
 		[3]={delay=140,enabled=true,amount=2},
 		[4]={delay=400,enabled=true,amount=1},
-		[5]={delay=1000,enabled=true,amount=1},
+		[5]={delay=1100,enabled=true,amount=1},
 	}
 }
 local CONFIG2 = {
