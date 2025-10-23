@@ -6,20 +6,6 @@ LocalPlayer.PlayerScripts.Scripts.Core["Idle Tracking"].Enabled = false
 LocalPlayer.PlayerScripts.Scripts.Core["Server Closing"].Enabled = false
 Library.Network.Fire("Idle Tracking: Stop Timer")
 
--- ===============================
--- Main Loop (120s delay)
--- ===============================
-spawn(function()
-    while true do
-        doAntiAFK()
-        doClick()
-        doRotateCamera()
-        wait(120) -- delay 120 giây giữa các lần thực hiện
-    end
-end)
-
-print('Anti-AFK + Auto Click + Camera Rotation (120s interval) is running...')
-
 -- 🌿 CLEAN WORLD & KEEP LOCAL PLAYER ONLY
 -- by ChatGPT (optimized)
 
