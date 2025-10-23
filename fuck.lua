@@ -502,7 +502,7 @@ end)
 
 --============= HOUSE AUTO-UNLOCK ===========================
 local PLOTS = workspace:WaitForChild('__THINGS'):WaitForChild('Plots')
-local COIN_THRESHOLDS = { 3e4, 8e5, 5e6, 3e7 }
+local COIN_THRESHOLDS = { 1e1, 3e4, 8e5, 5e6, 3e7 }
 
 local function unlockHouse(plotId, houseId)
 	local ok, res = RF(Plots_Invoke, plotId, 'PurchaseHouse', houseId)
@@ -529,7 +529,7 @@ task.spawn(function()
 		if plot then
 			local plotId = tonumber(plot:GetAttribute('ID')) or tonumber(plot.Name)
 			for i, _ in ipairs(COIN_THRESHOLDS) do
-				unlockHouse(plotId, i)
+				unlockHouse(plotId, i + 1) -- 👈 bắt đầu từ House 2
 				task.wait(0.5)
 			end
 		end
