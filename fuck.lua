@@ -30,19 +30,6 @@ function doAntiAFK()
     end)
 end
 
--- Hàm click tự động mẫu (nếu bạn có định nghĩa riêng, có thể bỏ)
-function doClick()
-    -- thực hiện hành động click hoặc tương tác trong game ở đây
-end
-
--- Hàm xoay camera mẫu (nếu bạn có định nghĩa riêng, có thể bỏ)
-function doRotateCamera()
-    local cam = workspace.CurrentCamera
-    if cam then
-        cam.CFrame = cam.CFrame * CFrame.Angles(0, math.rad(15), 0)
-    end
-end
-
 -- ===============================
 -- Main Loop (120s delay)
 -- ===============================
