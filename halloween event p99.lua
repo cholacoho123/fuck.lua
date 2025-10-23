@@ -486,21 +486,46 @@ local function stopAllThreads()
 end
 
 local function startEggThreadControlled(plotId, eggSlot, delay, amount, printVerbose)
-	local controller = { stopFlag = false }
-	activeThreads[eggSlot] = controller
-	task.spawn(function()
-		if printVerbose then log(("🐣 thread egg #%d %ss x%d"):format(eggSlot, tostring(delay), amount)) end
-		while not controller.stopFlag do
-			RF(Plots_Invoke, plotId, "PurchaseEgg", eggSlot, amount)
-			local t = 0
-			while t < delay and not controller.stopFlag do
-				task.wait(math.min(1, delay - t))
-				t = t + 1
-			end
-		end
-		if printVerbose then log(("🛑 stop egg #%d"):format(eggSlot)) end
-	end)
-	return controller
+    local controller = { stopFlag = false, failCount = 0 }
+    activeThreads[eggSlot] = controller
+
+    task.spawn(function()
+        if printVerbose then log(("🐣 thread egg #%d %ss x%d"):format(eggSlot, tostring(delay), amount)) end
+
+        while not controller.stopFlag do
+            local ok, result = pcall(function()
+                return RF(Plots_Invoke, plotId, "PurchaseEgg", eggSlot, amount)
+            end)
+
+            if not ok or result == nil then
+                controller.failCount += 1
+                warnlog(("⚠️ Egg #%d failed (%d)"):format(eggSlot, controller.failCount))
+
+                if controller.failCount >= 5 then
+                    warnlog(("🌀 Restarting egg #%d thread due to repeated fails"):format(eggSlot))
+                    controller.stopFlag = true
+                    task.delay(3, function()
+                        startEggThreadControlled(plotId, eggSlot, delay, amount, printVerbose)
+                    end)
+                    break
+                end
+
+                task.wait(4) -- chờ rồi thử lại
+            else
+                controller.failCount = 0 -- reset bộ đếm lỗi khi thành công
+            end
+
+            local t = 0
+            while t < delay and not controller.stopFlag do
+                task.wait(math.min(1, delay - t))
+                t += 1
+            end
+        end
+
+        if printVerbose then log(("🛑 stop egg #%d"):format(eggSlot)) end
+    end)
+
+    return controller
 end
 
 local function startThreadsForConfig(cfg, plotId)
