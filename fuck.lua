@@ -1,63 +1,11 @@
--- ===============================
--- Anti-AFK + Auto Click + Rotate Camera (120s delay)
--- ===============================
+local vu = game:GetService("VirtualUser")
+local player = game:GetService("Players").LocalPlayer
 
-local Players = game:GetService('Players')
-local VirtualUser = game:GetService('VirtualUser')
-local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local RunService = game:GetService('RunService')
-local player = Players.LocalPlayer
-local camera = workspace.CurrentCamera
-
--- ===============================
--- Anti-AFK Function
--- ===============================
-local function doAntiAFK()
-    VirtualUser:Button1Down(Vector2.new(0, 0), camera.CFrame)
-    wait(1)
-    VirtualUser:Button1Up(Vector2.new(0, 0), camera.CFrame)
-end
-
--- ===============================
--- Auto Click Function
--- ===============================
-local ClickEvent = ReplicatedStorage:WaitForChild('Network')
-    :WaitForChild('Click')
-
-local function doClick()
-    local args = {
-        [1] = Ray.new(
-            Vector3.new(-14717.569, 840.716, -10126.909),
-            Vector3.new(0.321, -0.398, -0.859)
-        ),
-        [2] = Vector3.new(-14709.156, 832.654, -10150.106),
-    }
-    ClickEvent:FireServer(unpack(args))
-end
-
--- ===============================
--- Rotate Camera Function
--- ===============================
-local function doRotateCamera()
-    local playerChar = player.Character
-    if playerChar and playerChar:FindFirstChild('HumanoidRootPart') then
-        local root = playerChar.HumanoidRootPart
-        -- Xoay camera 180 độ trong 2 giây
-        for i = 1, 60 do -- 60 frame ~ 2s
-            camera.CFrame = CFrame.new(
-                camera.CFrame.Position,
-                root.Position
-                    + Vector3.new(
-                        math.sin(i / 60 * math.pi * 2) * 5,
-                        0,
-                        math.cos(i / 60 * math.pi * 2) * 5
-                    )
-            )
-            RunService.RenderStepped:Wait()
-        end
-    end
-end
-
+player.Idled:Connect(function()
+    vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+end)
 -- ===============================
 -- Main Loop (120s delay)
 -- ===============================
