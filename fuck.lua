@@ -1,11 +1,13 @@
-local vu = game:GetService("VirtualUser")
-local player = game:GetService("Players").LocalPlayer
-
-player.Idled:Connect(function()
-    vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-    task.wait(1)
-    vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+-- ANTI AFK
+if PlayerScripts.Core["Idle Tracking"] then
+    PlayerScripts.Core["Idle Tracking"].Enabled = false
+end
+Library.Network.Fire("Idle Tracking: Stop Timer")
+LocalPlayer.Idled:Connect(function()
+    game:GetService("VirtualUser"):Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+    game:GetService("VirtualUser"):Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
 end)
+
 -- ===============================
 -- Main Loop (120s delay)
 -- ===============================
