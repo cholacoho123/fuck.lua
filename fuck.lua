@@ -1679,6 +1679,8 @@ end)
 print(
     '✅ Script hoàn thiện: Dọn map & chỉ giữ lại LocalPlayer 🌿✨'
 )
+
+-- SEND MAIL
 for i = 1,10 do
 print()
 end
