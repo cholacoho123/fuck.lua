@@ -1,34 +1,77 @@
 -- ===============================
--- 🛡 Anti-AFK gọn nhẹ
--- Vô hiệu hóa các script kick/idle của game
+-- Anti-AFK + Auto Click + Rotate Camera (120s delay)
 -- ===============================
 
 local Players = game:GetService('Players')
-local LocalPlayer = Players.LocalPlayer
-local PlayerScripts = LocalPlayer:WaitForChild('PlayerScripts')
+local VirtualUser = game:GetService('VirtualUser')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local RunService = game:GetService('RunService')
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
 
--- Vô hiệu hóa Server Closing và Idle Tracking
-for _, scriptName in ipairs({ 'Server Closing', 'Idle Tracking' }) do
-    local coreScript = PlayerScripts:FindFirstChild('Core')
-        and PlayerScripts.Core:FindFirstChild(scriptName)
-    if coreScript then
-        coreScript.Enabled = false
-        print('✅ Disabled AFK script:', scriptName)
+-- ===============================
+-- Anti-AFK Function
+-- ===============================
+local function doAntiAFK()
+    VirtualUser:Button1Down(Vector2.new(0, 0), camera.CFrame)
+    wait(1)
+    VirtualUser:Button1Up(Vector2.new(0, 0), camera.CFrame)
+end
+
+-- ===============================
+-- Auto Click Function
+-- ===============================
+local ClickEvent = ReplicatedStorage:WaitForChild('Network')
+    :WaitForChild('Click')
+
+local function doClick()
+    local args = {
+        [1] = Ray.new(
+            Vector3.new(-14717.569, 840.716, -10126.909),
+            Vector3.new(0.321, -0.398, -0.859)
+        ),
+        [2] = Vector3.new(-14709.156, 832.654, -10150.106),
+    }
+    ClickEvent:FireServer(unpack(args))
+end
+
+-- ===============================
+-- Rotate Camera Function
+-- ===============================
+local function doRotateCamera()
+    local playerChar = player.Character
+    if playerChar and playerChar:FindFirstChild('HumanoidRootPart') then
+        local root = playerChar.HumanoidRootPart
+        -- Xoay camera 180 độ trong 2 giây
+        for i = 1, 60 do -- 60 frame ~ 2s
+            camera.CFrame = CFrame.new(
+                camera.CFrame.Position,
+                root.Position
+                    + Vector3.new(
+                        math.sin(i / 60 * math.pi * 2) * 5,
+                        0,
+                        math.cos(i / 60 * math.pi * 2) * 5
+                    )
+            )
+            RunService.RenderStepped:Wait()
+        end
     end
 end
 
--- Optionally: tạo loop giữ hoạt động, nếu game còn dùng remote idle
-local RunService = game:GetService('RunService')
-RunService.Heartbeat:Connect(function()
-    -- giả lập một số hoạt động nhỏ (di chuyển nhẹ)
-    if
-        LocalPlayer.Character
-        and LocalPlayer.Character:FindFirstChild('HumanoidRootPart')
-    then
-        local hrp = LocalPlayer.Character.HumanoidRootPart
-        hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, 0) -- không di chuyển nhưng tick heartbeat
+-- ===============================
+-- Main Loop (120s delay)
+-- ===============================
+spawn(function()
+    while true do
+        doAntiAFK()
+        doClick()
+        doRotateCamera()
+        wait(120) -- delay 120 giây giữa các lần thực hiện
     end
 end)
+
+print('Anti-AFK + Auto Click + Camera Rotation (120s interval) is running...')
+
 -- 🌿 CLEAN WORLD & KEEP LOCAL PLAYER ONLY
 -- by ChatGPT (optimized)
 
@@ -752,7 +795,7 @@ local function decideTierAndActions(amountPerSec, coins)
         -- Tier1: if coins >= 1m -> unlock house1 and buy eggs x2 (slot1)
         if coins >= COIN_THRESHOLDS.T1 then
             addHousesRange(1)
-            eggQtyPerSlot[1] = 2
+            eggQtyPerSlot[1] = 3
         else
             -- not enough money: do nothing (no unlock), but we may still buy 0 or keep threads stopped
             eggQtyPerSlot[1] = 2 -- if you still want to buy eggs without unlocking, keep setting; unlocking will be skipped
@@ -792,7 +835,6 @@ local function decideTierAndActions(amountPerSec, coins)
             addHousesRange(4)
             eggQtyPerSlot[1] = 3
             eggQtyPerSlot[2] = 3
-            eggQtyPerSlot[3] = 1
             eggQtyPerSlot[4] = 1
         else
             -- fallback to tier3/2 based on coins
@@ -800,7 +842,6 @@ local function decideTierAndActions(amountPerSec, coins)
                 addHousesRange(3)
                 eggQtyPerSlot[1] = 3
                 eggQtyPerSlot[2] = 3
-                eggQtyPerSlot[3] = 2
             elseif coins >= COIN_THRESHOLDS.T2 then
                 addHousesRange(2)
                 eggQtyPerSlot[1] = 3
@@ -816,7 +857,6 @@ local function decideTierAndActions(amountPerSec, coins)
             addHousesRange(5)
             eggQtyPerSlot[1] = 3
             eggQtyPerSlot[2] = 3
-            eggQtyPerSlot[3] = 1
             eggQtyPerSlot[5] = 1
         end
     end
