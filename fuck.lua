@@ -43,37 +43,49 @@ end
 local function EV(obj, ...)
 	return SafeInvoke(obj, "FireServer", ...)
 end
-
---============= ANTI-AFK + RANDOM JUMP =======================
-local VirtualUser = game:GetService("VirtualUser")
+--============= ANTI-AFK (Full Safe + Jump Simulation) =======================
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local AntiAFK_Enabled = true
+local VirtualUser = game:GetService("VirtualUser")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
-local function Jump()
-	local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	if humanoid and humanoid:GetState() ~= Enum.HumanoidStateType.Jumping then
-		humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-		log("[Anti-AFK] Jumped")
-	end
-end
-
+-- 🛡️ Chống AFK cơ bản bằng VirtualUser
 LocalPlayer.Idled:Connect(function()
-	if AntiAFK_Enabled then
-		VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
-		task.wait(0.1)
-		VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
-		log("[Anti-AFK] Pulse")
-	end
+    VirtualUser:CaptureController()
+    VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
 end)
 
+-- 🤸 Nhảy mô phỏng mỗi 100s (VirtualUser)
 task.spawn(function()
-	while AntiAFK_Enabled do
-		local jitter = math.random(-60, 60) -- ±60s
-		task.wait(math.max(60, 300 + jitter))
-		Jump()
-	end
+    while task.wait(100) do
+        VirtualUser:CaptureController()
+        VirtualUser:SetKeyDown("0x20") -- phím Space
+        task.wait(1)
+        VirtualUser:SetKeyUp("0x20")
+    end
+end)
+
+-- 💨 Hàm giả lập nhấn Space (VirtualInputManager)
+function AFK()
+    while task.wait() do
+        VirtualInputManager:SendKeyEvent(true, "Space", false, game)
+        task.wait(1)
+        VirtualInputManager:SendKeyEvent(false, "Space", false, game)
+        task.wait(5)
+    end
+end
+
+spawn(AFK)
+print("✅ LOADED: ANTI AFK [Full Safe Mode]")
+
+-- 🧠 Tắt các cơ chế Idle mặc định của game
+pcall(function()
+    game.ReplicatedStorage.Network["Idle Tracking: Stop Timer"]:FireServer()
+    local scripts = LocalPlayer.PlayerScripts.Scripts.Core
+    scripts["Idle Tracking"].Enabled = false
+    scripts["Server Closing"].Enabled = false
 end)
 
 --============= LIGHT CLEANER (SAFE) =========================
