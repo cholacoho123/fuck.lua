@@ -1,3 +1,4 @@
+wait(3)
 getgenv().Settings = {
     Mailing = {
         ["Diamonds"] = {
