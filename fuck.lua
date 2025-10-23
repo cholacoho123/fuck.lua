@@ -549,8 +549,8 @@ local CONFIG1 = {
         [1] = { delay = 0.1, enabled = true, amount = 3 },
         [2] = { delay = 30,  enabled = true, amount = 3 },
         [3] = { delay = 140, enabled = true, amount = 2 },
-        [4] = { delay = 400, enabled = true, amount = 1 },
-        [5] = { delay = 1200, enabled = true, amount = 1 },
+        [4] = { delay = 350, enabled = true, amount = 1 },
+        [5] = { delay = 900, enabled = true, amount = 1 },
     }
 }
 
