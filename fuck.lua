@@ -1,6 +1,5 @@
- -- log1
-
 --============= UTIL: LOG & SAFE INVOKES =====================
+wait(3)
 local LOG = { verbose = false } -- set true to see logs
 local function log(...)
 	if LOG.verbose then
