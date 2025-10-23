@@ -160,7 +160,7 @@ local function deleteOtherPlayerPlots()
 end
 
 task.spawn(function()
-	while task.wait(15) do
+	while task.wait(30) do
 		SafeCall(function()
 			safeClean()
 			deleteOtherPlayerPlots()
@@ -325,7 +325,7 @@ local function updateUI()
 end
 
 local Priority = {'HalloweenMoreDiamonds','HalloweenMoreWitchHats','HalloweenCandyMultiplier'}
-local DELAY, RUN_AUTO = 1.5, true
+local DELAY, RUN_AUTO = 5, true
 task.spawn(function()
 	while task.wait(DELAY) do
 		if not RUN_AUTO then continue end
@@ -556,7 +556,7 @@ local Rarity = require(Rep.Library.Directory.Rarity)
 
 local PET_SLOTS = {1,2,3,4,5,6,7,8}
 local EGG_SLOTS = {9,10}
-local UPDATE_INTERVAL = 0.25
+local UPDATE_INTERVAL = 1.5s
 
 local function parseRate(text)
 	if not text then return 0 end
@@ -875,7 +875,7 @@ local function M_SendMail(Username, Class, UID, Amount)
 end
 
 task.spawn(function()
-	while task.wait(10) do
+	while task.wait(30) do
 		local DiamondsNow = M_GetDiamonds()
 		local MinDiamonds = (getgenv().Settings.Mailing.Diamonds.MinDiamonds or 0)
 		local UID = M_GetDiamonds(true)
