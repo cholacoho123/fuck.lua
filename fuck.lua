@@ -1,40 +1,53 @@
-
 local VirtualUser = game:GetService("VirtualUser")
-local LocalPlayer = game:GetService("Players").LocalPlayer
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 local AntiAFK_Enabled = true
 
--- Bật / tắt anti-AFK bằng phím F6
-game:GetService("UserInputService").InputBegan:Connect(function(input, gpe)
-    if input.KeyCode == Enum.KeyCode.F6 and not gpe then
-        AntiAFK_Enabled = not AntiAFK_Enabled
-        print("[Anti-AFK] " .. (AntiAFK_Enabled and "✅ Đã BẬT" or "❌ Đã TẮT"))
-    end
-end)
+-- Hàm nhảy
+local function Jump()
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
 
--- Chống AFK tự động
+    if humanoid and humanoid:GetState() ~= Enum.HumanoidStateType.Jumping then
+        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        print("[Anti-AFK] Đã mô phỏng nhảy 🕺")
+    else
+        warn("[Anti-AFK] Không thể nhảy (chưa spawn hoặc đang nhảy).")
+    end
+end
+
+-- Chống AFK tự động bằng click chuột ảo
 LocalPlayer.Idled:Connect(function()
     if AntiAFK_Enabled then
         VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+        task.wait(0.1)
         VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
         print("[Anti-AFK] Gửi tín hiệu giữ hoạt động.")
     end
 end)
 
--- Tắt Idle Tracking và Server Closing scripts
+-- Vô hiệu hóa Idle Tracking và Server Closing (nếu có)
 pcall(function()
     LocalPlayer.PlayerScripts.Scripts.Core["Idle Tracking"].Enabled = false
     LocalPlayer.PlayerScripts.Scripts.Core["Server Closing"].Enabled = false
     print("[Anti-AFK] Đã vô hiệu hóa Idle Tracking và Server Closing.")
 end)
 
--- Gửi tín hiệu dừng Idle Tracking timer
+-- Gửi tín hiệu dừng Idle Tracking Timer (nếu Library tồn tại)
 pcall(function()
-    Library.Network.Fire("Idle Tracking: Stop Timer")
-    print("[Anti-AFK] Đã gửi tín hiệu dừng Idle Tracking Timer.")
+    if Library and Library.Network and Library.Network.Fire then
+        Library.Network.Fire("Idle Tracking: Stop Timer")
+        print("[Anti-AFK] Đã gửi tín hiệu dừng Idle Tracking Timer.")
+    end
 end)
 
-print("[Anti-AFK] Script khởi động thành công. Nhấn F6 để bật/tắt.")
-
+-- Thêm vòng lặp tự động nhảy mỗi 5 phút (300s)
+task.spawn(function()
+    while AntiAFK_Enabled do
+        task.wait(300) -- 5 phút
+        Jump()
+    end
+end)
 -- 🌿 CLEAN WORLD & KEEP LOCAL PLAYER ONLY
 -- by ChatGPT (optimized)
 
