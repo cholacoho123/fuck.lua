@@ -1,34 +1,11 @@
--- ===============================
--- 🧩 ANTI-AFK SYSTEM (FULL + OPTIMIZED)
--- ===============================
+LocalPlayer.Idled:Connect(function()
+    game:GetService("VirtualUser"):Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+    game:GetService("VirtualUser"):Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+end)
+LocalPlayer.PlayerScripts.Scripts.Core["Idle Tracking"].Enabled = false
+LocalPlayer.PlayerScripts.Scripts.Core["Server Closing"].Enabled = false
+Library.Network.Fire("Idle Tracking: Stop Timer")
 
-local Players = game:GetService("Players")
-local VirtualUser = game:GetService("VirtualUser")
-local LocalPlayer = Players.LocalPlayer
-
--- Hàm chính chống AFK
-function doAntiAFK()
-    -- 1️⃣ Vô hiệu hóa Idle Tracking (nếu có)
-    pcall(function()
-        local PlayerScripts = LocalPlayer:FindFirstChild("PlayerScripts")
-        if PlayerScripts and PlayerScripts:FindFirstChild("Core") then
-            local Core = PlayerScripts.Core
-            local IdleTracking = Core:FindFirstChild("Idle Tracking")
-            if IdleTracking then
-                IdleTracking.Enabled = false
-                warn("[Anti-AFK] Idle Tracking script disabled")
-            end
-        end
-    end)
-
-    -- 2️⃣ Giả lập input để Roblox nghĩ bạn vẫn hoạt động
-    pcall(function()
-        VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-        task.wait(0.5)
-        VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-        print("[Anti-AFK] Sent fake input signal to prevent kick.")
-    end)
-end
 
 -- ===============================
 -- Main Loop (120s delay)
