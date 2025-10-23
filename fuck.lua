@@ -3,14 +3,6 @@ local VirtualUser = game:GetService("VirtualUser")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 local AntiAFK_Enabled = true
 
--- Bật / tắt anti-AFK bằng phím F6
-game:GetService("UserInputService").InputBegan:Connect(function(input, gpe)
-    if input.KeyCode == Enum.KeyCode.F6 and not gpe then
-        AntiAFK_Enabled = not AntiAFK_Enabled
-        print("[Anti-AFK] " .. (AntiAFK_Enabled and "✅ Đã BẬT" or "❌ Đã TẮT"))
-    end
-end)
-
 -- Chống AFK tự động
 LocalPlayer.Idled:Connect(function()
     if AntiAFK_Enabled then
