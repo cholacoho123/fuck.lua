@@ -369,7 +369,7 @@ local CONFIG1 = {
 		[2]={delay=30,enabled=true,amount=3},
 		[3]={delay=140,enabled=true,amount=2},
 		[4]={delay=500,enabled=true,amount=1},
-		[5]={delay=600,enabled=true,amount=1},
+		[5]={delay=200,enabled=true,amount=1},
 	}
 }
 local CONFIG2 = {
