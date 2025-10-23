@@ -1,300 +1,136 @@
 -- =========================================================
--- 🧠 ANTI-AFK + AUTO JUMP (tích hợp vào hệ thống chính)
+-- 🧠 ANTI-AFK + AUTO JUMP (phiên bản an toàn)
 -- =========================================================
 local VirtualUser = game:GetService("VirtualUser")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local AntiAFK_Enabled = true
 
--- 🕹️ Hàm mô phỏng nhảy
+-- 🕹️ Nhảy định kỳ mỗi 5 phút
 local function Jump()
-    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if humanoid and humanoid:GetState() ~= Enum.HumanoidStateType.Jumping then
-        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-        print("[Anti-AFK] Đã mô phỏng nhảy 🕺")
-    else
-        warn("[Anti-AFK] Không thể nhảy (chưa spawn hoặc đang nhảy).")
-    end
+	local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if humanoid and humanoid:GetState() ~= Enum.HumanoidStateType.Jumping then
+		humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+		print("[Anti-AFK] Đã nhảy để giữ hoạt động.")
+	end
 end
 
--- 🛡️ Chống AFK tự động (giữ hoạt động)
+-- 🛡️ Gửi tín hiệu hoạt động mỗi khi Roblox cho rằng bạn đang AFK
 LocalPlayer.Idled:Connect(function()
-    if AntiAFK_Enabled then
-        VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
-        task.wait(0.1)
-        VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
-        print("[Anti-AFK] Gửi tín hiệu giữ hoạt động.")
-    end
+	if AntiAFK_Enabled then
+		VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+		task.wait(0.1)
+		VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+		print("[Anti-AFK] Gửi tín hiệu giữ hoạt động.")
+	end
 end)
 
--- ⚙️ Tắt Idle Tracking và Server Closing (nếu có)
-pcall(function()
-    if LocalPlayer.PlayerScripts
-        and LocalPlayer.PlayerScripts:FindFirstChild("Scripts")
-        and LocalPlayer.PlayerScripts.Scripts:FindFirstChild("Core")
-    then
-        local core = LocalPlayer.PlayerScripts.Scripts.Core
-        if core:FindFirstChild("Idle Tracking") then
-            core["Idle Tracking"].Enabled = false
-        end
-        if core:FindFirstChild("Server Closing") then
-            core["Server Closing"].Enabled = false
-        end
-        print("[Anti-AFK] Đã vô hiệu hóa Idle Tracking & Server Closing.")
-    end
-end)
-
--- 🔄 Gửi tín hiệu dừng Idle Tracking Timer (nếu có Library)
-pcall(function()
-    if Library and Library.Network and Library.Network.Fire then
-        Library.Network.Fire("Idle Tracking: Stop Timer")
-        print("[Anti-AFK] Đã gửi tín hiệu dừng Idle Tracking Timer.")
-    end
-end)
-
--- ⏳ Vòng lặp tự động nhảy mỗi 5 phút (300 giây)
+-- 🕓 Tự nhảy mỗi 5 phút (đủ để reset timer AFK)
 task.spawn(function()
-    while AntiAFK_Enabled do
-        task.wait(300)
-        Jump()
-    end
+	while AntiAFK_Enabled do
+		task.wait(300)
+		Jump()
+	end
 end)
 
 -- =========================================================
--- PHẦN CÒN LẠI LÀ SCRIPT GỐC CỦA BẠN
+-- 🌿 CLEAN WORLD (phiên bản nhẹ và an toàn)
 -- =========================================================
-
--- 🌿 CLEAN WORLD & KEEP LOCAL PLAYER ONLY
--- by ChatGPT (optimized)
-
-local Players = game:GetService('Players')
+local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-
--- ⚙️ Cấu hình: Bật/Tắt tính năng xoá player khác
 local KEEP_ONLY_LOCALPLAYER = true
 
--- 🧍‍♂️ Hàm xoá tất cả player khác
+-- ⚙️ Xoá player khác (chỉ thực hiện nhẹ nhàng)
 local function removeOtherPlayers()
-    if not KEEP_ONLY_LOCALPLAYER then
-        return
-    end
-    for _, plr in ipairs(Players:GetChildren()) do
-        if plr ~= player then
-            pcall(function()
-                plr:Destroy()
-                warn('🧹 Đã xoá player:', plr.Name)
-            end)
-        end
-    end
+	if not KEEP_ONLY_LOCALPLAYER then return end
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr ~= player and plr.Character then
+			pcall(function()
+				plr.Character:Destroy()
+				warn("[Cleaner] Xoá player khác:", plr.Name)
+			end)
+		end
+	end
 end
 
--- ⏳ Vòng kiểm tra liên tục để đảm bảo không lọt player ẩn
-task.spawn(function()
-    while task.wait(3) do
-        removeOtherPlayers()
-    end
-end)
-
--- Chạy lần đầu tiên
-removeOtherPlayers()
-
--- 📝 Danh sách đường dẫn thủ công muốn xoá
+-- 🧹 Dọn các đối tượng rác — chỉ ẩn, KHÔNG phá Lighting/Terrain
 local ManualPathsToDelete = {
-    'workspace.GardenCoinShop',
-    'workspace.Debris',
-    'workspace.Interaction.UpdateItems.WitchesBrewEvent.PotionShelf',
-    'workspace.Interaction.UpdateItems.WitchesBrewEvent.WitchesBrewLeaderboard',
-    'workspace.Interaction.UpdateItems.WitchesBrewEvent.WitchesBrewPlate',
-    'workspace.Interaction.UpdateItems.WitchesBrewEvent.Witch.Broom',
-    'workspace.Interaction.UpdateItems.HalloweenMarketEvent.Casket',
-    "workspace.Interaction.UpdateItems.HalloweenMarketEvent['Devious Pumpkin']",
-    'workspace.Interaction.UpdateItems.HalloweenMarketEvent.HalloweenEloise',
-    'workspace.Interaction.UpdateItems.HalloweenMarketEvent.HalloweenLights',
-    'workspace.Interaction.UpdateItems.HalloweenMarketEvent.HalloweenPlate',
-    'workspace.Interaction.UpdateItems.HalloweenMarketEvent.HalloweenSteven',
-    'workspace.Interaction.UpdateItems.HalloweenMarketEvent.Model1',
-    'workspace.Interaction.UpdateItems.HalloweenMarketEvent.Model2',
-    'workspace.Interaction.UpdateItems.HalloweenMarketEvent.PumpkinLight',
-    'workspace.Interaction.UpdateItems.HalloweenMarketEvent.CandyCornSpecialCurrencyUIOverlap',
-    'workspace.HalloweenOuter',
-    'workspace.FlyBorder',
-    'workspace.BlockPartyOuter',
+	"workspace.GardenCoinShop",
+	"workspace.Interaction.UpdateItems.WitchesBrewEvent.WitchesBrewLeaderboard",
+	"workspace.Interaction.UpdateItems.HalloweenMarketEvent.Casket",
+	"workspace.Interaction.UpdateItems.HalloweenMarketEvent.HalloweenEloise",
+	"workspace.Interaction.UpdateItems.HalloweenMarketEvent.HalloweenLights",
+	"workspace.Interaction.UpdateItems.HalloweenMarketEvent.Model1",
+	"workspace.Interaction.UpdateItems.HalloweenMarketEvent.Model2",
+	"workspace.Interaction.UpdateItems.HalloweenMarketEvent.PumpkinLight",
+	"workspace.FlyBorder",
+	"workspace.BlockPartyOuter",
 }
 
--- 🌟 Ẩn phần hiển thị của Part nhưng giữ nguyên Prompt + thư mục con
-local function hidePartVisualButKeepContents(part)
-    part.Transparency = 1
-    part.CastShadow = false
-    part.CanCollide = false
-    part.CanTouch = false
-    part.CanQuery = false
-
-    for _, child in ipairs(part:GetChildren()) do
-        if
-            child:IsA('SpecialMesh')
-            or child:IsA('Decal')
-            or child:IsA('MeshPart')
-            or child:IsA('UnionOperation')
-        then
-            child:Destroy()
-        end
-    end
+-- 🧼 Ẩn thay vì phá
+local function safeHide(part)
+	if part:IsA("BasePart") then
+		part.Transparency = 1
+		part.CanCollide = false
+		part.CanTouch = false
+	end
 end
 
--- 🧹 Xoá phần hiển thị folder nhưng giữ Prompt
-local function clearFolderVisualButKeepPrompt(folder)
-    for _, desc in ipairs(folder:GetDescendants()) do
-        if desc:IsA('BasePart') then
-            local prompt = desc:FindFirstChildWhichIsA('ProximityPrompt')
-            if prompt then
-                hidePartVisualButKeepContents(desc)
-            else
-                desc:Destroy()
-            end
-        elseif
-            desc:IsA('MeshPart')
-            or desc:IsA('UnionOperation')
-            or desc:IsA('Decal')
-        then
-            desc:Destroy()
-        end
-    end
+local function safeClean()
+	for _, path in ipairs(ManualPathsToDelete) do
+		local success, obj = pcall(function()
+			return loadstring("return " .. path)()
+		end)
+		if success and obj then
+			pcall(function()
+				for _, desc in ipairs(obj:GetDescendants()) do
+					safeHide(desc)
+				end
+				safeHide(obj)
+				print("[Cleaner] Ẩn object:", path)
+			end)
+		end
+	end
 end
 
--- 🌳 Xoá cây & quả
-local function clearPlantAndFruits(plant)
-    clearFolderVisualButKeepPrompt(plant)
-    local fruits = plant:FindFirstChild('Fruits')
-    if fruits then
-        for _, fruit in ipairs(fruits:GetChildren()) do
-            clearFolderVisualButKeepPrompt(fruit)
-        end
-    end
-end
-
--- 🧼 Xoá đường dẫn thủ công
-local function deleteManualPaths()
-    for _, path in ipairs(ManualPathsToDelete) do
-        local success, target = pcall(function()
-            return loadstring('return ' .. path)()
-        end)
-        if success and target then
-            warn('Xóa theo đường dẫn:', path)
-            target:Destroy()
-        end
-    end
-end
-
--- 🧹 Xoá plot người chơi khác
+-- 🧩 Xoá plot người khác (giữ plot của bạn)
 local function deleteOtherPlayerPlots()
-    local plots = workspace:FindFirstChild('__THINGS')
-        and workspace.__THINGS:FindFirstChild('Plots')
-    if plots then
-        for _, plot in ipairs(plots:GetChildren()) do
-            local sign = plot:FindFirstChild('Build')
-                and plot.Build:FindFirstChild('Sign')
-            local isMine = false
-            if sign then
-                for _, gui in ipairs(sign:GetDescendants()) do
-                    if gui:IsA('TextLabel') and gui.Text:find(player.Name) then
-                        isMine = true
-                        break
-                    end
-                end
-            end
-            if not isMine then
-                plot:Destroy()
-            end
-        end
-    end
+	local plotsFolder = workspace:FindFirstChild("__THINGS") and workspace.__THINGS:FindFirstChild("Plots")
+	if not plotsFolder then return end
+
+	for _, plot in ipairs(plotsFolder:GetChildren()) do
+		local sign = plot:FindFirstChild("Build") and plot.Build:FindFirstChild("Sign")
+		local isMine = false
+		if sign then
+			for _, gui in ipairs(sign:GetDescendants()) do
+				if gui:IsA("TextLabel") and gui.Text:find(player.Name) then
+					isMine = true
+					break
+				end
+			end
+		end
+		if not isMine then
+			pcall(function()
+				plot:Destroy()
+				print("[Cleaner] Đã xoá plot khác:", plot.Name)
+			end)
+		end
+	end
 end
 
--- 🧼 Vòng lặp dọn map cũ liên tục
+-- ⏳ Vòng dọn nhẹ, giãn cách 15s thay vì 2s (an toàn hơn)
 task.spawn(function()
-    while task.wait(2) do
-        pcall(function()
-            -- ❌ Xoá Lighting object
-            for _, obj in ipairs(game:GetService('Lighting'):GetChildren()) do
-                obj:Destroy()
-            end
-
-            -- ❌ Xoá Debris
-            if workspace:FindFirstChild('Debris') then
-                for _, obj in ipairs(workspace.Debris:GetChildren()) do
-                    obj:Destroy()
-                end
-            end
-
-            -- ❌ Xoá Terrain (giữ object Terrain nhưng xoá tất cả nội dung)
-            if workspace:FindFirstChild('Terrain') then
-                workspace.Terrain:Clear()
-            end
-
-            -- 🧼 Xoá theo đường dẫn thủ công
-            deleteManualPaths()
-
-            -- 🌾 Dọn toàn bộ Farm
-            for _, farm in workspace:GetChildren() do
-                if farm.Name == 'Farm' then
-                    for _, subFarm in ipairs(farm:GetChildren()) do
-                        if
-                            subFarm.Name == 'Farm'
-                            and subFarm:FindFirstChild('Important')
-                            and subFarm.Important:FindFirstChild('Data')
-                            and subFarm.Important.Data:FindFirstChild('Owner')
-                        then
-                            local isMine = (
-                                subFarm.Important.Data.Owner.Value
-                                == player.Name
-                            )
-                            if not isMine then
-                                subFarm:Destroy()
-                            else
-                                local important = subFarm.Important
-                                if
-                                    important:FindFirstChild('Plants_Physical')
-                                then
-                                    for _, plant in
-                                        ipairs(
-                                            important.Plants_Physical:GetChildren()
-                                        )
-                                    do
-                                        clearPlantAndFruits(plant)
-                                    end
-                                end
-                                for _, folderName in ipairs({
-                                    'Decorations',
-                                    'Fences',
-                                    'Cosmetics',
-                                }) do
-                                    if important:FindFirstChild(folderName) then
-                                        for _, obj in
-                                            ipairs(
-                                                important[folderName]:GetChildren()
-                                            )
-                                        do
-                                            obj:Destroy()
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-
-            -- 🧹 Xoá plot người chơi khác
-            deleteOtherPlayerPlots()
-            -- 🧹 Xoá player khác (đảm bảo kiểm tra định kỳ)
-            removeOtherPlayers()
-        end)
-    end
+	while task.wait(15) do
+		pcall(function()
+			safeClean()
+			deleteOtherPlayerPlots()
+			removeOtherPlayers()
+		end)
+	end
 end)
 
-print(
-    '✅ Script hoàn thiện: Dọn map & chỉ giữ lại LocalPlayer 🌿✨'
-)
+print("✅ Cleaner & Anti-AFK đã khởi động (phiên bản tối ưu chống disconnect).")
 
 -- 🎃 HALLOWEEN DASHBOARD (Overlay + Auto Upgrade + Currency + Toggle)
 -- by GPT-5 | Simple, Clean & Functional
