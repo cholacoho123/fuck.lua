@@ -1,11 +1,3 @@
-LocalPlayer.Idled:Connect(function()
-    game:GetService("VirtualUser"):Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
-    game:GetService("VirtualUser"):Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
-end)
-LocalPlayer.PlayerScripts.Scripts.Core["Idle Tracking"].Enabled = false
-LocalPlayer.PlayerScripts.Scripts.Core["Server Closing"].Enabled = false
-Library.Network.Fire("Idle Tracking: Stop Timer")
-
 -- 🌿 CLEAN WORLD & KEEP LOCAL PLAYER ONLY
 -- by ChatGPT (optimized)
 
