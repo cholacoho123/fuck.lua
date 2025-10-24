@@ -404,7 +404,7 @@ local CONFIG2 = {
 		[2]={delay=1,enabled=true,amount=3},
 		[3]={delay=1.3,enabled=true,amount=3},
 		[4]={delay=400,enabled=true,amount=1},
-		[5]={delay=800,enabled=true,amount=1},
+		[5]={delay=600,enabled=true,amount=1},
 	}
 }
 local THRESHOLD_AMOUNT = 12000
@@ -606,7 +606,7 @@ local Rarity = require(Rep.Library.Directory.Rarity)
 
 local PET_SLOTS = {1,2,3,4,5,6,7,8,9}
 local EGG_SLOTS = {10}
-local UPDATE_INTERVAL = 1.5
+local UPDATE_INTERVAL = 4
 
 local function parseRate(text)
 	if not text then return 0 end
