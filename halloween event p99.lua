@@ -390,7 +390,7 @@ local Plots_Invoke = ReplicatedStorage:WaitForChild("Network"):WaitForChild("Plo
 local CONFIG1 = {
 	NAME="Config 1", PRINT_VERBOSE=false, RECHECK_PLOT_EVERY=600,
 	EGGS = {
-		[1]={delay=0.9,enabled=true,amount=3},
+		[1]={delay=1,enabled=true,amount=3},
 		[2]={delay=30,enabled=true,amount=3},
 		[3]={delay=140,enabled=true,amount=2},
 		[4]={delay=500,enabled=true,amount=1},
@@ -400,9 +400,9 @@ local CONFIG1 = {
 local CONFIG2 = {
 	NAME="Config 2 (>=10k/s)", PRINT_VERBOSE=false, RECHECK_PLOT_EVERY=600,
 	EGGS = {
-		[1]={delay=0.9,enabled=true,amount=3},
-		[2]={delay=0.9,enabled=true,amount=3},
-		[3]={delay=0.9,enabled=true,amount=1},
+		[1]={delay=1,enabled=true,amount=3},
+		[2]={delay=1,enabled=true,amount=3},
+		[3]={delay=1,enabled=true,amount=1},
 		[4]={delay=600,enabled=false,amount=1},
 		[5]={delay=1000,enabled=false,amount=1},
 	}
