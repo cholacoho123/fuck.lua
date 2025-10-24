@@ -400,9 +400,9 @@ local CONFIG1 = {
 local CONFIG2 = {
 	NAME="Config 2 (>=10k/s)", PRINT_VERBOSE=false, RECHECK_PLOT_EVERY=600,
 	EGGS = {
-		[1]={delay=1,enabled=true,amount=3},
+		[1]={delay=0.7,enabled=true,amount=3},
 		[2]={delay=1,enabled=true,amount=3},
-		[3]={delay=1,enabled=true,amount=3},
+		[3]={delay=1.3,enabled=true,amount=3},
 		[4]={delay=400,enabled=true,amount=1},
 		[5]={delay=800,enabled=true,amount=1},
 	}
