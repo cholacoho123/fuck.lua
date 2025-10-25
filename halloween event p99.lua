@@ -407,7 +407,7 @@ local CONFIG2 = {
 		[5]={delay=600,enabled=true,amount=1},
 	}
 }
-local THRESHOLD_AMOUNT = 16000
+local THRESHOLD_AMOUNT = 13000
 local SIGN_RECHECK_INTERVAL = 15
 
 local function parseNumberWithSuffix(s)
