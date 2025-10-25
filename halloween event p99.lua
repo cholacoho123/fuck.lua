@@ -392,7 +392,7 @@ local CONFIG1 = {
 	EGGS = {
 		[1]={delay=1,enabled=true,amount=3},
 		[2]={delay=30,enabled=true,amount=3},
-		[3]={delay=120,enabled=true,amount=1},
+		[3]={delay=150,enabled=true,amount=1},
 		[4]={delay=500,enabled=true,amount=1},
 		[5]={delay=100,enabled=true,amount=1},
 	}
@@ -403,11 +403,11 @@ local CONFIG2 = {
 		[1]={delay=0.7,enabled=true,amount=3},
 		[2]={delay=1,enabled=true,amount=3},
 		[3]={delay=1.3,enabled=true,amount=3},
-		[4]={delay=400,enabled=true,amount=1},
+		[4]={delay=400,enabled=false,amount=1},
 		[5]={delay=600,enabled=true,amount=1},
 	}
 }
-local THRESHOLD_AMOUNT = 12000
+local THRESHOLD_AMOUNT = 14000
 local SIGN_RECHECK_INTERVAL = 15
 
 local function parseNumberWithSuffix(s)
