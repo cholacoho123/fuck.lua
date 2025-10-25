@@ -394,7 +394,7 @@ local CONFIG1 = {
 		[2]={delay=30,enabled=true,amount=3},
 		[3]={delay=150,enabled=true,amount=1},
 		[4]={delay=500,enabled=true,amount=1},
-		[5]={delay=100,enabled=true,amount=1},
+		[5]={delay=60,enabled=true,amount=1},
 	}
 }
 local CONFIG2 = {
@@ -404,7 +404,7 @@ local CONFIG2 = {
 		[2]={delay=0.3,enabled=true,amount=3},
 		[3]={delay=0.4,enabled=true,amount=3},
 		[4]={delay=400,enabled=false,amount=1},
-		[5]={delay=600,enabled=true,amount=1},
+		[5]={delay=500,enabled=true,amount=1},
 	}
 }
 local THRESHOLD_AMOUNT = 13000
@@ -606,7 +606,7 @@ local Rarity = require(Rep.Library.Directory.Rarity)
 
 local PET_SLOTS = {1,2,3,4,5,6,7,8,9}
 local EGG_SLOTS = {10}
-local UPDATE_INTERVAL = 4
+local UPDATE_INTERVAL = 2.5
 
 local function parseRate(text)
 	if not text then return 0 end
@@ -951,7 +951,7 @@ end
 task.spawn(function()
     print("[Mailing] 🚀 Bắt đầu module gửi kim cương tự động…")
 
-    while task.wait(10) do
+    while task.wait(40) do
         local DiamondsNow = M_GetDiamonds()
         local MinDiamonds = (Settings.Mailing.Diamonds.MinDiamonds or 0)
         local UID = M_GetDiamonds(true)
