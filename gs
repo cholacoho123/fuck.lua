@@ -16,6 +16,7 @@ getgenv().GGFX_MODE = 1
 getgenv().GDO_HALLOWEEN_WORLD = true
 getgenv().GHALLOWEEN_WORLD_BUY_FROM_SPECIFIC_HOUSE = 3
 getgenv().GHALLOWEEN_WORLD_BUY_FROM_HOUSES_BELOW = true
+getgenv().GALLOW_HOPPING = true
 getgenv().GZONE_TO = 1
 getgenv().GEVENT_UPGRADES = {
   "HalloweenCandyMultiplier",
