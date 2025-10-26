@@ -443,7 +443,7 @@ local CONFIG2 = {
 	}
 }
 
-local THRESHOLD_AMOUNT = 13000
+local THRESHOLD_AMOUNT = 11000
 local SIGN_RECHECK_INTERVAL = 15
 
 --============ UTIL ============
