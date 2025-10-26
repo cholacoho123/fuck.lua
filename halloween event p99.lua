@@ -407,7 +407,7 @@ local CONFIG1 = {
 	NAME="Config 1", PRINT_VERBOSE=false, RECHECK_PLOT_EVERY=600,
 	EGGS = {
 		[1]={delay=1,enabled=true,amount=3},
-		[2]={delay=30,enabled=true,amount=3},
+		[2]={delay=40,enabled=true,amount=3},
 		[3]={delay=150,enabled=true,amount=1},
 		[4]={delay=500,enabled=true,amount=1},
 		[5]={delay=60,enabled=true,amount=1},
