@@ -1,5 +1,4 @@
- -- log2
-
+-- log3
 --============= UTIL: LOG & SAFE INVOKES =====================
 local LOG = { verbose = false } -- set true to see logs
 local function log(...)
@@ -382,11 +381,28 @@ task.spawn(function()
 end)
 updateUI()
 
---============= CONFIGS + EGGS THREADS + SIGN READ =========
+--============ CONFIGS + EGG THREADS + SIGN READ + WORLD SWITCH ============
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local LocalPlayer = Players.LocalPlayer
 local PlotsFolder = workspace:WaitForChild("__THINGS"):WaitForChild("Plots")
-local Plots_Invoke = ReplicatedStorage:WaitForChild("Network"):WaitForChild("Plots_Invoke")
+local Network = ReplicatedStorage:WaitForChild("Network")
+local Plots_Invoke = Network:WaitForChild("Plots_Invoke")
+local OrbsEvent = Network:WaitForChild("Orbs: Collect")
 
+-- 🌍 WORLD IDS
+local worldA = 131952481663528
+local worldB = 8737899170
+
+-- ⚡ Nếu đang ở world phụ → quay lại world chính
+if game.PlaceId == worldB then
+	print("🌍 Đang ở world phụ, quay lại world chính...")
+	TeleportService:Teleport(worldA, LocalPlayer)
+	return
+end
+
+--============ CONFIGS ============
 local CONFIG1 = {
 	NAME="Config 1", PRINT_VERBOSE=false, RECHECK_PLOT_EVERY=600,
 	EGGS = {
@@ -397,19 +413,23 @@ local CONFIG1 = {
 		[5]={delay=60,enabled=true,amount=1},
 	}
 }
+
 local CONFIG2 = {
 	NAME="Config 2 (>=10k/s)", PRINT_VERBOSE=false, RECHECK_PLOT_EVERY=600,
+	SWITCH_AFTER = { count = 2 },
 	EGGS = {
 		[1]={delay=0.4,enabled=true,amount=3},
 		[2]={delay=0.7,enabled=true,amount=3},
 		[3]={delay=1,enabled=true,amount=3},
-		[4]={delay=400,enabled=false,amount=1},
+		[4]={delay=1,enabled=false,amount=1},
 		[5]={delay=500,enabled=true,amount=1},
 	}
 }
+
 local THRESHOLD_AMOUNT = 13000
 local SIGN_RECHECK_INTERVAL = 15
 
+--============ UTIL ============
 local function parseNumberWithSuffix(s)
 	if not s then return nil end
 	local str = tostring(s):lower():match("^%s*(.-)%s*$") or s
@@ -421,8 +441,9 @@ local function parseNumberWithSuffix(s)
 		if suffix=="m" then return n*1e6 end
 		if suffix=="b" then return n*1e9 end
 	end
-	return tonumber(clean:match("([%d%.]+)"))
+	return tonumber(clean:match("([%d%.,]+)"))
 end
+
 local function extractAmountFromText(txt)
 	if not txt then return nil end
 	local lower = tostring(txt):lower()
@@ -444,24 +465,19 @@ local function findMyPlotAndAmount()
 	for _, plot in ipairs(PlotsFolder:GetChildren()) do
 		local sign = plot:FindFirstChild("Build") and plot.Build:FindFirstChild("Sign")
 		if sign then
-			local texts = {}
+			local texts, containsName = {}, false
 			for _, g in ipairs(sign:GetDescendants()) do
-				if (g:IsA("TextLabel") or g:IsA("TextBox") or g:IsA("TextButton")) and (g.Text and g.Text~="") then
+				if (g:IsA("TextLabel") or g:IsA("TextBox")) and g.Text and g.Text~="" then
 					table.insert(texts, g.Text)
-				end
-			end
-			local containsName = false
-			for _, t in ipairs(texts) do
-				if tostring(t):lower():find(LocalPlayer.Name:lower(), 1, true) then
-					containsName = true; break
+					if g.Text:lower():find(LocalPlayer.Name:lower()) then
+						containsName = true
+					end
 				end
 			end
 			if containsName then
 				for _, t in ipairs(texts) do
 					local amt = extractAmountFromText(t)
-					if amt then
-						return plot, amt
-					end
+					if amt then return plot, amt end
 				end
 				return plot, nil
 			end
@@ -472,11 +488,16 @@ end
 
 local function getPlotIdNumber(plot)
 	if not plot then return nil end
-	local plotId = plot:GetAttribute("ID") or plot:GetAttribute("PlotID") or tonumber(plot.Name) or plot.Name
-	return tonumber(plotId) or plotId
+	return tonumber(plot:GetAttribute("ID") or plot:GetAttribute("PlotID") or plot.Name) or plot.Name
 end
 
+--============ STATE ============
 local activeThreads = {}
+local brokenEggs, brokenCount = {}, 0
+local lastOrbTime = 3
+local currentConfig
+OrbsEvent.OnClientEvent:Connect(function(...) lastOrbTime = tick() end)
+
 local function stopAllThreads()
 	for _, ctrl in pairs(activeThreads) do
 		if ctrl then ctrl.stopFlag = true end
@@ -485,79 +506,100 @@ local function stopAllThreads()
 	activeThreads = {}
 end
 
-local function startEggThreadControlled(plotId, eggSlot, delay, amount, printVerbose)
-    local controller = { stopFlag = false, failCount = 0 }
-    activeThreads[eggSlot] = controller
-
-    task.spawn(function()
-        if printVerbose then log(("🐣 thread egg #%d %ss x%d"):format(eggSlot, tostring(delay), amount)) end
-
-        while not controller.stopFlag do
-            local ok, result = pcall(function()
-                return RF(Plots_Invoke, plotId, "PurchaseEgg", eggSlot, amount)
-            end)
-
-            if not ok or result == nil then
-                controller.failCount += 1
-                warnlog(("⚠️ Egg #%d failed (%d)"):format(eggSlot, controller.failCount))
-
-                if controller.failCount >= 5 then
-                    warnlog(("🌀 Restarting egg #%d thread due to repeated fails"):format(eggSlot))
-                    controller.stopFlag = true
-                    task.delay(3, function()
-                        startEggThreadControlled(plotId, eggSlot, delay, amount, printVerbose)
-                    end)
-                    break
-                end
-
-                task.wait(4) -- chờ rồi thử lại
-            else
-                controller.failCount = 0 -- reset bộ đếm lỗi khi thành công
-            end
-
-            local t = 0
-            while t < delay and not controller.stopFlag do
-                task.wait(math.min(1, delay - t))
-                t += 1
-            end
-        end
-
-        if printVerbose then log(("🛑 stop egg #%d"):format(eggSlot)) end
-    end)
-
-    return controller
+local function checkWorldSwitch(cfg)
+	if cfg ~= CONFIG2 then return end
+	local maxBroken = cfg.SWITCH_AFTER.count or 3
+	if brokenCount >= maxBroken then
+		print("🌍 Đủ số trứng lỗi → Chuyển sang world phụ...")
+		TeleportService:Teleport(worldB, LocalPlayer)
+	end
 end
 
-local function startThreadsForConfig(cfg, plotId)
+--============ AUTO MỞ TRỨNG (CHECK TỰ ĐỘNG CHUNG CONFIG 2) ============
+local function startEggThread(plotId, eggSlot, delay, amount, cfg)
+	local controller = { stopFlag = false }
+	activeThreads[eggSlot] = controller
+
+	task.spawn(function()
+		while not controller.stopFlag do
+			local beforeCall = tick()
+			local ok, ret = pcall(function()
+				return Plots_Invoke:InvokeServer(plotId, "PurchaseEgg", eggSlot, amount)
+			end)
+
+			local opened = false
+			for _ = 1, 10 do
+				if lastOrbTime > beforeCall then opened = true break end
+				task.wait(0.1)
+			end
+
+			-- ✅ Nếu Config 2 → có hệ thống check trứng kèm theo
+			if cfg == CONFIG2 then
+				if opened or (ok and ret and (type(ret) ~= "table" or next(ret))) then
+					print(string.format("✅ Trứng #%d mở thành công.", eggSlot))
+				else
+					warn(string.format("⚠️ Trứng #%d thất bại.", eggSlot))
+					brokenEggs[eggSlot] = (brokenEggs[eggSlot] or 0) + 1
+					if brokenEggs[eggSlot] >= 3 then
+						if not brokenEggs[eggSlot .. "_flagged"] then
+							brokenEggs[eggSlot .. "_flagged"] = true
+							brokenCount += 1
+							warn(string.format("❌ Trứng #%d lỗi sau 3 lần (Tổng lỗi: %d)", eggSlot, brokenCount))
+							checkWorldSwitch(cfg)
+						end
+					end
+				end
+			else
+				-- ✅ Config 1 chỉ mở bình thường
+				if opened or (ok and ret and (type(ret) ~= "table" or next(ret))) then
+					print(string.format("✅ Trứng #%d mở thành công (Config 1).", eggSlot))
+				else
+					warn(string.format("⚠️ Trứng #%d mở thất bại (Config 1).", eggSlot))
+				end
+			end
+
+			task.wait(delay)
+		end
+	end)
+end
+
+local function startNormalEggs(plotId, cfg)
 	stopAllThreads()
+	print(string.format("▶️ Bắt đầu mở trứng (%s)...", cfg.NAME))
 	for eggSlot, info in pairs(cfg.EGGS) do
 		if info.enabled then
-			startEggThreadControlled(plotId, eggSlot, info.delay, info.amount or 3, cfg.PRINT_VERBOSE)
-			task.wait(0.08)
+			startEggThread(plotId, eggSlot, info.delay, info.amount, cfg)
+			task.wait(0.1)
 		end
 	end
 end
 
+--============ MAIN ============
 task.spawn(function()
-	local currentConfig, currentPlot = nil, nil
+	local currentPlot = nil
+	print("⏳ Đang kiểm tra plot của bạn...")
+
 	while true do
-		local plot, amount = findMyPlotAndAmount()
+		local plot, amt = findMyPlotAndAmount()
 		if not plot then
+			print("⚠️ Không tìm thấy plot, chờ thử lại...")
 			stopAllThreads()
 			currentConfig, currentPlot = nil, nil
 			task.wait(CONFIG1.RECHECK_PLOT_EVERY)
 		else
-			local plotIdNum = getPlotIdNumber(plot)
-			local chosen = (amount and amount >= THRESHOLD_AMOUNT) and CONFIG2 or CONFIG1
-			if (not currentConfig) or (currentPlot ~= plot) or (currentConfig.NAME ~= chosen.NAME) then
-				startThreadsForConfig(chosen, plotIdNum)
-				currentConfig, currentPlot = chosen, plot
+			local plotId = getPlotIdNumber(plot)
+			local cfg = (amt and amt >= THRESHOLD_AMOUNT) and CONFIG2 or CONFIG1
+
+			if (not currentConfig) or (currentPlot ~= plot) or (currentConfig.NAME ~= cfg.NAME) then
+				currentConfig = cfg
+				currentPlot = plot
+				stopAllThreads()
+				print("\n🔄 Đổi sang cấu hình:", cfg.NAME)
+				startNormalEggs(plotId, cfg)
 			end
-			local waited = 0
-			while waited < SIGN_RECHECK_INTERVAL do
-				task.wait(1); waited += 1
-				if not plot.Parent then break end
-			end
+
+			print(string.format("✅ Plot: %s | Candy/s: %.2f | Config: %s", plot.Name, amt or 0, cfg.NAME))
+			task.wait(SIGN_RECHECK_INTERVAL)
 		end
 	end
 end)
@@ -941,7 +983,7 @@ local function M_SendMail(Username, Class, UID, Amount)
         Settings.DiamondsAvailable = math.floor(M_GetDiamonds() - Settings.MailCost)
     else
         warn("[Mailing] ❌ Send failed, retrying in 3s...")
-        task.wait(3)
+        task.wait(30)
         return M_SendMail(Username, Class, UID, Amount)
     end
     return result
@@ -980,4 +1022,3 @@ task.spawn(function()
         end
     end
 end)
--- có cái lồz
