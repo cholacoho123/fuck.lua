@@ -438,7 +438,7 @@ local CONFIG2 = {
 		[1]={delay=0.4,enabled=true,amount=3},
 		[2]={delay=0.7,enabled=true,amount=3},
 		[3]={delay=1,enabled=true,amount=3},
-		[4]={delay=1,enabled=false,amount=1},
+		[4]={delay=30,enabled=true,amount=1},
 		[5]={delay=500,enabled=true,amount=1},
 	}
 }
