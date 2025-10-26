@@ -1,4 +1,4 @@
--- log3
+-- log4
 --============= UTIL: LOG & SAFE INVOKES =====================
 local LOG = { verbose = false } -- set true to see logs
 local function log(...)
