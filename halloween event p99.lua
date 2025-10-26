@@ -395,10 +395,27 @@ local OrbsEvent = Network:WaitForChild("Orbs: Collect")
 local worldA = 131952481663528
 local worldB = 8737899170
 
--- ⚡ Nếu đang ở world phụ → quay lại world chính
+-- ⚡ Nếu đang ở world phụ → quay lại world chính (có delay + retry)
 if game.PlaceId == worldB then
-	print("🌍 Đang ở world phụ, quay lại world chính...")
-	TeleportService:Teleport(worldA, LocalPlayer)
+	print("🌍 Đang ở world phụ, chuẩn bị quay lại world chính trong 5s...")
+	task.wait(5)
+
+	local ok, err = pcall(function()
+		TeleportService:Teleport(worldA, LocalPlayer)
+	end)
+
+	if not ok then
+		warn("⚠️ Teleport về world chính thất bại:", err)
+		task.wait(10)
+		print("🔁 Thử lại teleport về world chính...")
+		pcall(function()
+			TeleportService:Teleport(worldA, LocalPlayer)
+		end)
+	else
+		print("✅ Đang chuyển về world chính...")
+	end
+
+	task.wait(10)
 	return
 end
 
@@ -407,7 +424,7 @@ local CONFIG1 = {
 	NAME="Config 1", PRINT_VERBOSE=false, RECHECK_PLOT_EVERY=600,
 	EGGS = {
 		[1]={delay=1,enabled=true,amount=3},
-		[2]={delay=40,enabled=true,amount=3},
+		[2]={delay=30,enabled=true,amount=3},
 		[3]={delay=150,enabled=true,amount=1},
 		[4]={delay=500,enabled=true,amount=1},
 		[5]={delay=60,enabled=true,amount=1},
@@ -506,15 +523,32 @@ local function stopAllThreads()
 	activeThreads = {}
 end
 
+--============ CHECK WORLD SWITCH (có delay + retry) ============
 local function checkWorldSwitch(cfg)
 	if cfg ~= CONFIG2 then return end
 	local maxBroken = cfg.SWITCH_AFTER.count or 3
 	if brokenCount >= maxBroken then
-		print("🌍 Đủ số trứng lỗi → Chuyển sang world phụ...")
-		TeleportService:Teleport(worldB, LocalPlayer)
+		print("🌍 Đủ số trứng lỗi → Chuẩn bị chuyển sang world phụ trong 5s...")
+		task.wait(5)
+
+		local ok, err = pcall(function()
+			TeleportService:Teleport(worldB, LocalPlayer)
+		end)
+
+		if not ok then
+			warn("⚠️ Teleport sang world phụ thất bại:", err)
+			task.wait(10)
+			print("🔁 Thử lại teleport sang world phụ...")
+			pcall(function()
+				TeleportService:Teleport(worldB, LocalPlayer)
+			end)
+		else
+			print("✅ Đang chuyển sang world phụ...")
+		end
+
+		task.wait(10)
 	end
 end
-
 --============ AUTO MỞ TRỨNG (CHECK TỰ ĐỘNG CHUNG CONFIG 2) ============
 local function startEggThread(plotId, eggSlot, delay, amount, cfg)
 	local controller = { stopFlag = false }
@@ -983,7 +1017,7 @@ local function M_SendMail(Username, Class, UID, Amount)
         Settings.DiamondsAvailable = math.floor(M_GetDiamonds() - Settings.MailCost)
     else
         warn("[Mailing] ❌ Send failed, retrying in 3s...")
-        task.wait(30)
+        task.wait(3)
         return M_SendMail(Username, Class, UID, Amount)
     end
     return result
